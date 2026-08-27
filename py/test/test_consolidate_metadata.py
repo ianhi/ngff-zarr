@@ -71,3 +71,14 @@ def test_unconsolidated_store_roundtrips():
         np.asarray(roundtrip.images[0].data),
         np.asarray(multiscales.images[0].data),
     )
+
+
+def test_ozx_honors_explicit_false(tmp_path):
+    """The .ozx zipped path forwards the override rather than always consolidating."""
+    path = tmp_path / "image.ozx"
+    to_ngff_zarr(
+        str(path), _make_multiscales(), version="0.5", consolidate_metadata=False
+    )
+
+    store = zarr.storage.ZipStore(str(path), mode="r")
+    assert not _is_consolidated(store)

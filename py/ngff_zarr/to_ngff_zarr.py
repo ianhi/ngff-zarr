@@ -1549,7 +1549,7 @@ def to_ome_zarr(
         no support because consolidated metadata interferes with their own
         consolidation and consistency mechanisms, so they are skipped
         automatically. Pass True or False to force the behavior regardless of the
-        store. Ignored for .ozx outputs, which are always consolidated.
+        store.
     :type  consolidate_metadata: bool or None, optional
 
     :param **kwargs: Passed to the zarr.create_array() or zarr.creation.create() function, e.g., compression options.
@@ -1613,6 +1613,7 @@ def to_ome_zarr(
                 progress=progress,
                 chunks_per_shard=chunks_per_shard,
                 scale_strategy=scale_strategy,
+                consolidate_metadata=consolidate_metadata,
                 **kwargs,
             )
 
