@@ -1498,6 +1498,7 @@ def to_ome_zarr(
     progress: NgffProgress | NgffProgressCallback | None = None,
     chunks_per_shard: int | tuple[int, ...] | dict[str, int] | None = None,
     scale_strategy: ScaleStrategy = "pad",
+    consolidate_metadata: bool | None = None,
     **kwargs,
 ) -> None:
     """
@@ -1540,6 +1541,16 @@ def to_ome_zarr(
         (original_size // scale_factor), so the written arrays match the
         coordinate metadata.
     :type  scale_strategy: "pad" or "exact", optional
+
+    :param consolidate_metadata: Whether to write consolidated metadata after the
+        arrays. If None (default), consolidate only when the store advertises
+        support via a truthy ``supports_consolidated_metadata`` attribute (stores
+        without the attribute are assumed to support it). Icechunk stores report
+        no support because consolidated metadata interferes with their own
+        consolidation and consistency mechanisms, so they are skipped
+        automatically. Pass True or False to force the behavior regardless of the
+        store.
+    :type  consolidate_metadata: bool or None, optional
 
     :param **kwargs: Passed to the zarr.create_array() or zarr.creation.create() function, e.g., compression options.
     """
@@ -1634,6 +1645,7 @@ def to_ome_zarr(
         progress=progress,
         chunks_per_shard=chunks_per_shard,
         scale_strategy=scale_strategy,
+        consolidate_metadata=consolidate_metadata,
         **kwargs,
     )
 
@@ -1652,6 +1664,7 @@ def _to_ngff_zarr_impl(
     progress: NgffProgress | NgffProgressCallback | None = None,
     chunks_per_shard: int | tuple[int, ...] | dict[str, int] | None = None,
     scale_strategy: ScaleStrategy = "pad",
+    consolidate_metadata: bool | None = None,
     **kwargs,
 ) -> None:
     """
@@ -1814,14 +1827,21 @@ def _to_ngff_zarr_impl(
             callback()
         image.computed_callbacks = []
 
-    # Consolidate metadata
-    if IS_ZARR_V3_PLUS:
-        with warnings.catch_warnings():
-            # Ignore consolidated metadata warning
-            warnings.filterwarnings("ignore", category=UserWarning)
+    # Consolidate metadata. Some stores forbid it: Icechunk rejects consolidated
+    # metadata because it interferes with its own consolidation and consistency
+    # mechanisms (gh-issue-698). When the caller has not made an explicit choice,
+    # respect the store's advertised support.
+    if consolidate_metadata is None:
+        consolidate_metadata = getattr(store, "supports_consolidated_metadata", True)
+
+    if consolidate_metadata:
+        if IS_ZARR_V3_PLUS:
+            with warnings.catch_warnings():
+                # Ignore consolidated metadata warning
+                warnings.filterwarnings("ignore", category=UserWarning)
+                zarr.consolidate_metadata(store, **format_kwargs)
+        else:
+            # Zarr_format is used elsewhere but for this consolidate_metadata it is not an argument in zarr v2.
+            if format_kwargs.get("zarr_format"):
+                del format_kwargs["zarr_format"]
             zarr.consolidate_metadata(store, **format_kwargs)
-    else:
-        # Zarr_format is used elsewhere but for this consolidate_metadata it is not an argument in zarr v2.
-        if format_kwargs.get("zarr_format"):
-            del format_kwargs["zarr_format"]
-        zarr.consolidate_metadata(store, **format_kwargs)
