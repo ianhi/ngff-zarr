@@ -64,6 +64,14 @@ class ConversionOptions(BaseModel):
     )
     compression_level: int | None = Field(None, description="Compression level")
     use_tensorstore: bool = Field(False, description="Use TensorStore for I/O")
+    consolidate_metadata: bool | None = Field(
+        None,
+        description=(
+            "Whether to write consolidated metadata. None (default) consolidates "
+            "only when the store supports it (e.g. Icechunk stores are skipped "
+            "automatically); True or False forces the behavior."
+        ),
+    )
 
     # Performance options
     use_local_cluster: bool = Field(
@@ -140,6 +148,14 @@ class OptimizationOptions(BaseModel):
     )
     storage_options: dict[str, str | int | bool] | None = Field(
         None, description="Storage options for remote stores"
+    )
+    consolidate_metadata: bool | None = Field(
+        None,
+        description=(
+            "Whether to write consolidated metadata. None (default) consolidates "
+            "only when the store supports it (e.g. Icechunk stores are skipped "
+            "automatically); True or False forces the behavior."
+        ),
     )
 
 

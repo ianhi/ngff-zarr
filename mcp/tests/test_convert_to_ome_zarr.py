@@ -295,3 +295,30 @@ async def test_convert_with_anatomical_orientation(test_input_file, temp_output_
     for dim, value in expected.items():
         assert by_name[dim]["orientation"]["type"] == "anatomical"
         assert by_name[dim]["orientation"]["value"] == value
+
+
+@pytest.mark.asyncio
+async def test_convert_without_consolidated_metadata(test_input_file, temp_output_dir):
+    """``consolidate_metadata=False`` skips the consolidated metadata (gh-issue-698)."""
+    import packaging.version
+    import zarr
+
+    if packaging.version.parse(zarr.__version__).major < 3:
+        pytest.skip("OME-Zarr 0.5 requires Zarr v3")
+
+    output_path = Path(temp_output_dir) / "mr_head_unconsolidated.ome.zarr"
+
+    options = ConversionOptions(
+        output_path=str(output_path),
+        ome_zarr_version="0.5",
+        method="itkwasm_gaussian",
+        scale_factors=None,
+        chunks=64,
+        consolidate_metadata=False,
+    )
+
+    result = await convert_to_ome_zarr([str(test_input_file)], options)
+    assert result.success, f"Conversion failed: {result.error}"
+
+    group = zarr.open_group(str(output_path), mode="r")
+    assert group.metadata.consolidated_metadata is None
