@@ -79,9 +79,9 @@ async def convert_images_to_ome_zarr(
             Applies to file/array inputs only; for existing zarr-store inputs
             the orientation already in the source metadata is preserved.
         storage_options: Storage options for remote stores (S3, GCS, etc.)
-        consolidate_metadata: Whether to write consolidated metadata. None
-            (default) consolidates only when the store supports it (e.g. Icechunk
-            stores are skipped automatically); True or False forces the behavior.
+        consolidate_metadata: Write consolidated metadata. None (default)
+            consolidates only when the store supports it, True or False forces
+            the behavior.
 
     Returns:
         ConversionResult with success status and store information
@@ -192,9 +192,9 @@ async def optimize_ome_zarr_store(
         compression_level: New compression level
         chunks: New chunk sizes
         chunks_per_shard: New sharding configuration
-        consolidate_metadata: Whether to write consolidated metadata. None
-            (default) consolidates only when the store supports it (e.g. Icechunk
-            stores are skipped automatically); True or False forces the behavior.
+        consolidate_metadata: Write consolidated metadata. None (default)
+            consolidates only when the store supports it, True or False forces
+            the behavior.
 
     Returns:
         ConversionResult with optimization results

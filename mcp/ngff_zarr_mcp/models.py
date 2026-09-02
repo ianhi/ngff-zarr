@@ -6,12 +6,6 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-_CONSOLIDATE_METADATA_DESC = (
-    "Whether to write consolidated metadata. None (default) consolidates "
-    "only when the store supports it (e.g. Icechunk stores are skipped "
-    "automatically); True or False forces the behavior."
-)
-
 
 class ConversionOptions(BaseModel):
     """Options for image conversion to OME-Zarr."""
@@ -71,7 +65,11 @@ class ConversionOptions(BaseModel):
     compression_level: int | None = Field(None, description="Compression level")
     use_tensorstore: bool = Field(False, description="Use TensorStore for I/O")
     consolidate_metadata: bool | None = Field(
-        None, description=_CONSOLIDATE_METADATA_DESC
+        None,
+        description=(
+            "Write consolidated metadata. None (default) consolidates only "
+            "when the store supports it, True or False forces the behavior"
+        ),
     )
 
     # Performance options
@@ -151,7 +149,11 @@ class OptimizationOptions(BaseModel):
         None, description="Storage options for remote stores"
     )
     consolidate_metadata: bool | None = Field(
-        None, description=_CONSOLIDATE_METADATA_DESC
+        None,
+        description=(
+            "Write consolidated metadata. None (default) consolidates only "
+            "when the store supports it, True or False forces the behavior"
+        ),
     )
 
 

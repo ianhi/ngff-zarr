@@ -1545,11 +1545,8 @@ def to_ome_zarr(
     :param consolidate_metadata: Whether to write consolidated metadata after the
         arrays. If None (default), consolidate only when the store advertises
         support via a truthy ``supports_consolidated_metadata`` attribute (stores
-        without the attribute are assumed to support it). Icechunk stores report
-        no support because consolidated metadata interferes with their own
-        consolidation and consistency mechanisms, so they are skipped
-        automatically. Pass True or False to force the behavior regardless of the
-        store.
+        without the attribute are assumed to support it). Pass True or False to
+        force the behavior regardless of the store.
     :type  consolidate_metadata: bool or None, optional
 
     :param **kwargs: Passed to the zarr.create_array() or zarr.creation.create() function, e.g., compression options.
@@ -1828,10 +1825,7 @@ def _to_ngff_zarr_impl(
             callback()
         image.computed_callbacks = []
 
-    # Consolidate metadata. Some stores forbid it: Icechunk rejects consolidated
-    # metadata because it interferes with its own consolidation and consistency
-    # mechanisms (gh-issue-698). When the caller has not made an explicit choice,
-    # respect the store's advertised support.
+    # Consolidate if the store allows it, with optional user override (gh-issue-698).
     if consolidate_metadata is None:
         consolidate_metadata = getattr(store, "supports_consolidated_metadata", True)
 
